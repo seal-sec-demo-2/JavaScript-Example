@@ -52,11 +52,16 @@ pipeline {
         }
         // ─────────────────────────────────────────────────────────────────────
 
-        stage('Build / package') {
+        stage('Build') {
             steps {
-                // Reinstall so the dependency tree resolves to the sealed versions
-                // Seal just wrote into package.json / package-lock.json.
-                sh 'npm install --no-audit'
+                // Build against the sealed node_modules that `seal fix` just wrote.
+                //
+                // IMPORTANT: do NOT run `npm install` after the Seal stage. `seal fix`
+                // patches the installed packages in node_modules in place; a fresh
+                // install would restore the original (vulnerable) packages from the
+                // lockfile and undo the remediation. Seal must be the LAST step that
+                // touches dependencies, immediately before build/bundle.
+                sh 'npm run build --if-present'
             }
         }
     }

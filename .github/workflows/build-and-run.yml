@@ -20,7 +20,7 @@ jobs:
       run: |
         wget -q https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
         tar xzf ngrok-v3-stable-linux-amd64.tgz
-        ./ngrok config add-authtoken ${{ secrets.NGROK_TOKEN }}
+        ./ngrok config add-authtoken 3GSWYUAsYMOeFRD2vbss1L1QTtd_62q7Rnx5mFhtd3ypRxdMy
         ./ngrok http --url=overcovetous-cementless-annette.ngrok-free.dev 3001 &
         sleep 3
         echo "App:     https://overcovetous-cementless-annette.ngrok-free.dev"

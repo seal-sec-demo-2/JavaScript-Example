@@ -1,0 +1,63 @@
+name: Seal Security Remediation
+
+# Runs the Seal CLI as one extra step in the build: after dependencies are
+# installed and before packaging. It scans the resolved dependencies and
+# replaces vulnerable packages with sealed (backported, drop-in) versions.
+#
+# Fix mode is "remote": the CLI fetches sealing rules from the Seal platform
+# for this project and applies them. Remediation policy is managed centrally
+# in the Seal UI — no rules are committed to this repo.
+
+on:
+  workflow_dispatch:
+    inputs:
+      fix_mode:
+        description: 'Fix mode: remote (UI-approved), local (actions file), or all (everything available)'
+        required: true
+        default: 'remote'
+        type: choice
+        options:
+          - remote
+          - local
+          - all
+
+jobs:
+  remediate-and-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Dependencies
+        run: npm install --no-audit
+
+      - name: Seal Security - Fix Vulnerabilities
+        uses: seal-community/cli-action@latest
+        with:
+          mode: fix
+          fix_mode: ${{ github.event.inputs.fix_mode || 'remote' }}
+          # Point Seal at the lock file for this ecosystem.
+          target: package-lock.json
+          token: ${{ secrets.SEAL_TOKEN }}
+
+      - name: Start Application
+        run: |
+          wget -q https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+          tar xzf ngrok-v3-stable-linux-amd64.tgz
+          ./ngrok config add-authtoken ${{ secrets.NGROK_TOKEN }}
+          ./ngrok http --url=overcovetous-cementless-annette.ngrok-free.dev 3001 &
+          sleep 3
+          echo "App:     https://overcovetous-cementless-annette.ngrok-free.dev"
+          echo ""
+          echo "Normal:  https://overcovetous-cementless-annette.ngrok-free.dev/?name=alice"
+          echo "Exploit: https://overcovetous-cementless-annette.ngrok-free.dev/?name=Hacker&settings[view%20options][outputFunctionName]=x;setTimeout(function()%7Bprocess.exit(1)%7D,3000);s"
+          echo ""
+          echo "After remediation the exploit is blocked (the app shows 'Invalid parameter')."
+          npm run start

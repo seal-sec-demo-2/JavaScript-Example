@@ -43,7 +43,6 @@ jobs:
         with:
           mode: fix
           fix_mode: ${{ github.event.inputs.fix_mode || 'remote' }}
-          project: JavaScript-Example
           target: package-lock.json
           token: ${{ secrets.SEAL_TOKEN }}
 
